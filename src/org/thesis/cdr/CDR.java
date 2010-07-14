@@ -3,26 +3,24 @@ package org.thesis.cdr;
 import java.io.*;
 import java.util.*;
 
-import org.apache.commons.collections15.Factory;
-
-import edu.uci.ics.jung.algorithms.importance.AbstractRanker;
 import edu.uci.ics.jung.algorithms.scoring.BetweennessCentrality;
 import edu.uci.ics.jung.algorithms.scoring.ClosenessCentrality;
 import edu.uci.ics.jung.algorithms.scoring.DegreeScorer;
+import edu.uci.ics.jung.algorithms.scoring.DistanceCentralityScorer;
+import edu.uci.ics.jung.algorithms.scoring.EigenvectorCentrality;
 import edu.uci.ics.jung.algorithms.scoring.VertexScorer;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
-import edu.uci.ics.jung.io.PajekNetReader;
 
 
 public class CDR {
 
 
-	public DirectedSparseGraph<String, Number> Graph;
+	public UndirectedSparseGraph<String, Number> Graph;
 	private BigFile bFile;
-	//public static String FILE = "/media/Right/cdr-slice.txt";
-	public static String FILE = "test-case.txt";
+	public static String FILE = "/media/Right/cdr-slice.txt";
+	//public static String FILE = "test-case.txt";
 	private FileWriter saveFile;
 	private BufferedWriter output;
 	List<String> vertices;
@@ -32,13 +30,15 @@ public class CDR {
 		myCDR.readData();
 		myCDR.insertNodes();
 		//myCDR.computeBetweennessCentrality("bet.txt");
-		myCDR.computeClosenessCentrality("cc.txt");
+		//myCDR.computeClosenessCentrality("cc.txt");
+		//myCDR.computeDegrees("dg.txt");
+		myCDR.computeEigenvectorCentrality("ec.txt");
 
 
 	}
 	
 	public CDR() {
-		Graph = new DirectedSparseGraph<String, Number>();
+		Graph = new UndirectedSparseGraph<String, Number>();
 	}
 	
 	public void insertNodes() {
@@ -48,9 +48,9 @@ public class CDR {
 			String read_line[] = line.split("\t");
 			Graph.addVertex(read_line[2]); // caller
 			Graph.addVertex(read_line[3]); // target
-			Graph.addEdge(edgeNo++, read_line[2], read_line[3], EdgeType.DIRECTED);
+			Graph.addEdge(edgeNo++, read_line[2], read_line[3], EdgeType.UNDIRECTED);
 			
-			System.out.println(line);
+			//System.out.println(line);
 		}
 		vertices = new ArrayList<String>(Graph.getVertices());
 	}
@@ -67,7 +67,26 @@ public class CDR {
 		saveScore((VertexScorer<String, Double>)bc, outFilename);
 	}
 	
-	public void saveScore(VertexScorer<String, Double> vs, String outFilename)
+	public void computeDegrees(String outFilename){
+		DegreeScorer<String> ds = new DegreeScorer<String>(Graph);
+		saveScore((VertexScorer<String, Integer>)ds, outFilename);
+	}
+	
+	public void computeFreemansClosenessCentrality(String outFilename) {
+		DistanceCentralityScorer<String, Number> fc = new DistanceCentralityScorer<String, Number>(
+				Graph, false);
+		saveScore((VertexScorer<String, Double>)fc, outFilename);
+	}
+	
+	public void computeEigenvectorCentrality(String outFilename) {
+		EigenvectorCentrality<String, Number> fc = new EigenvectorCentrality<String, Number>(
+				Graph);
+		saveScore((VertexScorer<String, Double>)fc, outFilename);
+	}
+	
+	
+	
+	private <S> void saveScore(VertexScorer<String, S> vs, String outFilename)
 	{
 		openSaveFile(outFilename);
 
@@ -82,6 +101,7 @@ public class CDR {
 		closeSaveFile();
 	}
 	
+
 	public void readData() {
 		// a lot lots to read...
 		try {
