@@ -9,7 +9,6 @@ import edu.uci.ics.jung.algorithms.scoring.DegreeScorer;
 import edu.uci.ics.jung.algorithms.scoring.DistanceCentralityScorer;
 import edu.uci.ics.jung.algorithms.scoring.EigenvectorCentrality;
 import edu.uci.ics.jung.algorithms.scoring.VertexScorer;
-import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
 
@@ -19,7 +18,8 @@ public class CDR {
 
 	public UndirectedSparseGraph<String, Number> Graph;
 	private BigFile bFile;
-	public static String FILE = "/media/Right/cdr-slice.txt";
+	public static String FILE = "/ext/mmincer/cdr";
+	//public static String FILE = "/home/mmincer/cdr-slice.txt";
 	//public static String FILE = "test-case.txt";
 	private FileWriter saveFile;
 	private BufferedWriter output;
@@ -29,11 +29,32 @@ public class CDR {
 		CDR myCDR = new CDR();
 		myCDR.readData();
 		myCDR.insertNodes();
-		//myCDR.computeBetweennessCentrality("bet.txt");
-		//myCDR.computeClosenessCentrality("cc.txt");
-		//myCDR.computeDegrees("dg.txt");
-		myCDR.computeEigenvectorCentrality("ec.txt");
-
+		
+		long startTime = System.currentTimeMillis();
+		myCDR.computeDegrees("/ext/mmincer/degrees.txt");
+		long endTime = System.currentTimeMillis();
+		System.out.println("Total execution time of computeDegrees: " + (endTime-startTime) + "ms");
+		
+		startTime = System.currentTimeMillis();
+		myCDR.computeClosenessCentrality("/ext/mmincer/closenessCentrality.txt");
+		endTime = System.currentTimeMillis();
+		System.out.println("Total execution time of closenessCent: " + (endTime-startTime) + "ms");
+		
+		startTime = System.currentTimeMillis();
+		myCDR.computeEigenvectorCentrality("/ext/mmincer/eigenvectorCentrality.txt");
+		endTime = System.currentTimeMillis();
+		System.out.println("Total execution time of eigenvectorCent: " + (endTime-startTime) + "ms");
+				
+		startTime = System.currentTimeMillis();
+		myCDR.computeBetweennessCentrality("/ext/mmincer/betweenessCentrality.txt");
+		endTime = System.currentTimeMillis();
+		System.out.println("Total execution time of betweenessCent: " + (endTime-startTime) + "ms");
+		
+		startTime = System.currentTimeMillis();
+		myCDR.computeFreemansClosenessCentrality("/ext/mmincer/freemanClosenessCentrality.txt");
+		endTime = System.currentTimeMillis();
+		System.out.println("Total execution time of freemansClosenessCent: " + (endTime-startTime) + "ms");
+		
 
 	}
 	
@@ -49,10 +70,10 @@ public class CDR {
 			Graph.addVertex(read_line[2]); // caller
 			Graph.addVertex(read_line[3]); // target
 			Graph.addEdge(edgeNo++, read_line[2], read_line[3], EdgeType.UNDIRECTED);
-			
-			//System.out.println(line);
 		}
 		vertices = new ArrayList<String>(Graph.getVertices());
+		System.out.println("Vertices: " + Graph.getVertexCount());
+		System.out.println("Edges: " + Graph.getEdgeCount());
 	}
 	
 	public void computeBetweennessCentrality(String outFilename) {
