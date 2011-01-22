@@ -3,14 +3,15 @@ package org.thesis.cdr;
 import java.util.*;
 import java.io.*;
 
+
 /**
- * According to
+ * Klasa BigFile służy do operowania na dużych plikach bez potrzeby ładowania ich w całości do pamięci operacyjnej. 
+ * Kod źródłowy klasy pobrany ze strony:
  * http://code.hammerpig.com/how-to-read-really-large-files-in-java.html
  * 
  * @author hammerpig.com
  * 
  */
-
 public class BigFile implements Iterable<String> {
 	private BufferedReader _reader;
 

@@ -12,13 +12,18 @@ import edu.uci.ics.jung.algorithms.scoring.VertexScorer;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
 
-
+/**
+ * Klasa CDR zwiera w sobie metody uruchamiające eksperyment "JUNG na Azul", polegający na próbie wyznaczenie miar węzłów bardzo dużej sieci, 
+ * za pomocą biblioteki JUNG uruchomionej na maszynie Azul. 
+ * @author ymir
+ *
+ */
 public class CDR {
 
 
 	public UndirectedSparseGraph<String, Number> Graph;
 	private BigFile bFile;
-	public static String FILE = "/ext/mmincer/cdr";
+	public static String FILE = "/ext/mmincer/cdr"; // lokalizacja odpowiada zasobom na komputerze siemowit
 	//public static String FILE = "/home/mmincer/cdr-slice.txt";
 	//public static String FILE = "test-case.txt";
 	private FileWriter saveFile;
@@ -26,6 +31,11 @@ public class CDR {
 	List<String> vertices;
 	
 	public static void main(String[] args) {
+		/**
+		 * Metoda ładuje dane z pliku znajdującego się w lokalizacji ustawionej w polu FILE. 
+		 * Następnie uruchamiane są metody służące do obliczania wartości miar węzłów. 
+		 * Wynik ich pracy jest zapisywany do plików, których lokalizacja jest podawana jako parametr danej metody.  
+		 */
 		CDR myCDR = new CDR();
 		myCDR.readData();
 		myCDR.insertNodes();
@@ -33,27 +43,27 @@ public class CDR {
 		long startTime = System.currentTimeMillis();
 		myCDR.computeDegrees("/ext/mmincer/degrees.txt");
 		long endTime = System.currentTimeMillis();
-		System.out.println("Total execution time of computeDegrees: " + (endTime-startTime) + "ms");
+		System.out.println("Całkowity czas wykonania computeDegrees: " + (endTime-startTime) + "ms");
 		
 		startTime = System.currentTimeMillis();
 		myCDR.computeClosenessCentrality("/ext/mmincer/closenessCentrality.txt");
 		endTime = System.currentTimeMillis();
-		System.out.println("Total execution time of closenessCent: " + (endTime-startTime) + "ms");
+		System.out.println("Całkowity czas wykonania closenessCent: " + (endTime-startTime) + "ms");
 		
 		startTime = System.currentTimeMillis();
 		myCDR.computeEigenvectorCentrality("/ext/mmincer/eigenvectorCentrality.txt");
 		endTime = System.currentTimeMillis();
-		System.out.println("Total execution time of eigenvectorCent: " + (endTime-startTime) + "ms");
+		System.out.println("Całkowity czas wykonania eigenvectorCent: " + (endTime-startTime) + "ms");
 				
 		startTime = System.currentTimeMillis();
 		myCDR.computeBetweennessCentrality("/ext/mmincer/betweenessCentrality.txt");
 		endTime = System.currentTimeMillis();
-		System.out.println("Total execution time of betweenessCent: " + (endTime-startTime) + "ms");
+		System.out.println("Całkowity czas wykonania betweenessCent: " + (endTime-startTime) + "ms");
 		
 		startTime = System.currentTimeMillis();
 		myCDR.computeFreemansClosenessCentrality("/ext/mmincer/freemanClosenessCentrality.txt");
 		endTime = System.currentTimeMillis();
-		System.out.println("Total execution time of freemansClosenessCent: " + (endTime-startTime) + "ms");
+		System.out.println("Całkowity czas wykonania freemansClosenessCent: " + (endTime-startTime) + "ms");
 		
 
 	}
@@ -62,6 +72,9 @@ public class CDR {
 		Graph = new UndirectedSparseGraph<String, Number>();
 	}
 	
+	/**
+	 * Metoda tworzy sieć na podstawie danych wczytanych z pliku. 
+	 */
 	public void insertNodes() {
 		int edgeNo = 0;
 		for (String line : bFile) {
@@ -76,29 +89,49 @@ public class CDR {
 		System.out.println("Edges: " + Graph.getEdgeCount());
 	}
 	
+	/**
+	 * Metoda wyznacza wartość pośrednictwa dla każdego węzła. 
+	 * @param outFilename
+	 */
 	public void computeBetweennessCentrality(String outFilename) {
 		BetweennessCentrality<String, Number> bc = new BetweennessCentrality<String, Number>(
 				Graph);
 		saveScore((VertexScorer<String, Double>)bc, outFilename);
 	}
 	
+	/**
+	 * Metoda wyznacza wartość bliskości dla każdego węzła. 
+	 * @param outFilename
+	 */
 	public void computeClosenessCentrality(String outFilename) {
 		ClosenessCentrality<String, Number> bc = new ClosenessCentrality<String, Number>(
 				Graph);
 		saveScore((VertexScorer<String, Double>)bc, outFilename);
 	}
 	
+	/**
+	 * Metoda wyznacza stopień dla każdego węzła. 
+	 * @param outFilename
+	 */
 	public void computeDegrees(String outFilename){
 		DegreeScorer<String> ds = new DegreeScorer<String>(Graph);
 		saveScore((VertexScorer<String, Integer>)ds, outFilename);
 	}
 	
+	/**
+	 * Metoda wyznacza wartość bliskości w sensie Freemana dla każdego węzła. 
+	 * @param outFilename
+	 */
 	public void computeFreemansClosenessCentrality(String outFilename) {
 		DistanceCentralityScorer<String, Number> fc = new DistanceCentralityScorer<String, Number>(
 				Graph, false);
 		saveScore((VertexScorer<String, Double>)fc, outFilename);
 	}
 	
+	/**
+	 * Metoda wyznacza wartość centralności własnej dla każdego węzła. 
+	 * @param outFilename
+	 */
 	public void computeEigenvectorCentrality(String outFilename) {
 		EigenvectorCentrality<String, Number> fc = new EigenvectorCentrality<String, Number>(
 				Graph);
@@ -106,7 +139,12 @@ public class CDR {
 	}
 	
 	
-	
+	/**
+	 * Metoda zapisuje wartości miar dla węzłów w wynikowym pliku tekstowym. 
+	 * @param <S> typ wartości miar
+	 * @param vs VertexScorer zawierający wyliczone wartości miar
+	 * @param outFilename nazwa pliku
+	 */
 	private <S> void saveScore(VertexScorer<String, S> vs, String outFilename)
 	{
 		openSaveFile(outFilename);
@@ -122,9 +160,10 @@ public class CDR {
 		closeSaveFile();
 	}
 	
-
+	/**
+	 * Metoda pomocnicza, otwiera plik z danymi
+	 */
 	public void readData() {
-		// a lot lots to read...
 		try {
 			bFile = new BigFile(FILE);
 		} catch (Exception e) {
@@ -132,16 +171,23 @@ public class CDR {
 		}
 	}
 	
+	/**
+	 * Metoda pomocnicza, otwiera plik do zapisu
+	 * @param filename
+	 */
 	public void openSaveFile(String filename) {
 		try {
 			saveFile = new FileWriter(filename);
 			output = new BufferedWriter(saveFile);
 			
-		} catch (Exception e) {// Catch exception if any
+		} catch (Exception e) {
 			System.err.println("Error: " + e.getMessage());
 		}
 	}
 	
+	/**
+	 * Metoda pomocnicza, zamyka plik po zapisie. 
+	 */
 	public void closeSaveFile() {
 		try {
 			output.close();
