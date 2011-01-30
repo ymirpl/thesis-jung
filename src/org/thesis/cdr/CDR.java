@@ -24,52 +24,72 @@ public class CDR {
 	public UndirectedSparseGraph<String, Number> Graph;
 	private BigFile bFile;
 	public static String FILE = "/ext/mmincer/cdr"; // lokalizacja odpowiada zasobom na komputerze siemowit
+	public static String OUT_DIR = "/ext/mmincer";
 	//public static String FILE = "/home/mmincer/cdr-slice.txt";
 	//public static String FILE = "test-case.txt";
 	private FileWriter saveFile;
 	private BufferedWriter output;
 	List<String> vertices;
 	
+	/**
+	 * Metoda ładuje dane z pliku znajdującego się w lokalizacji ustawionej w polu FILE. 
+	 * Następnie uruchamiane są metody służące do obliczania wartości miar węzłów. 
+	 * Wynik ich pracy jest zapisywany do plików, których nazwa jest podawana jako parametr danej metody.
+	 * Pliki te są tworzone w katalogu OUT_DIR.
+	 * Zmienne FILE i OUT_DIR są ustawiane w pliku config.properties. 
+	 * 
+	 * @param configFile jako parametr musi być podana ścieżka do pliku config.properties, zawierającego ustawienia
+	 */
 	public static void main(String[] args) {
-		/**
-		 * Metoda ładuje dane z pliku znajdującego się w lokalizacji ustawionej w polu FILE. 
-		 * Następnie uruchamiane są metody służące do obliczania wartości miar węzłów. 
-		 * Wynik ich pracy jest zapisywany do plików, których lokalizacja jest podawana jako parametr danej metody.  
-		 */
-		CDR myCDR = new CDR();
+
+		
+
+		
+		CDR myCDR = new CDR(args[0]);
 		myCDR.readData();
 		myCDR.insertNodes();
 		
 		long startTime = System.currentTimeMillis();
-		myCDR.computeDegrees("/ext/mmincer/degrees.txt");
+		myCDR.computeDegrees(CDR.OUT_DIR+"degrees.txt");
 		long endTime = System.currentTimeMillis();
 		System.out.println("Całkowity czas wykonania computeDegrees: " + (endTime-startTime) + "ms");
 		
 		startTime = System.currentTimeMillis();
-		myCDR.computeClosenessCentrality("/ext/mmincer/closenessCentrality.txt");
+		myCDR.computeClosenessCentrality(CDR.OUT_DIR+"closenessCentrality.txt");
 		endTime = System.currentTimeMillis();
 		System.out.println("Całkowity czas wykonania closenessCent: " + (endTime-startTime) + "ms");
 		
 		startTime = System.currentTimeMillis();
-		myCDR.computeEigenvectorCentrality("/ext/mmincer/eigenvectorCentrality.txt");
+		myCDR.computeEigenvectorCentrality(CDR.OUT_DIR+"eigenvectorCentrality.txt");
 		endTime = System.currentTimeMillis();
 		System.out.println("Całkowity czas wykonania eigenvectorCent: " + (endTime-startTime) + "ms");
 				
 		startTime = System.currentTimeMillis();
-		myCDR.computeBetweennessCentrality("/ext/mmincer/betweenessCentrality.txt");
+		myCDR.computeBetweennessCentrality(CDR.OUT_DIR+"betweenessCentrality.txt");
 		endTime = System.currentTimeMillis();
 		System.out.println("Całkowity czas wykonania betweenessCent: " + (endTime-startTime) + "ms");
 		
 		startTime = System.currentTimeMillis();
-		myCDR.computeFreemansClosenessCentrality("/ext/mmincer/freemanClosenessCentrality.txt");
+		myCDR.computeFreemansClosenessCentrality(CDR.OUT_DIR+"freemanClosenessCentrality.txt");
 		endTime = System.currentTimeMillis();
 		System.out.println("Całkowity czas wykonania freemansClosenessCent: " + (endTime-startTime) + "ms");
 		
 
 	}
 	
-	public CDR() {
+	public CDR(String propsFile) {
 		Graph = new UndirectedSparseGraph<String, Number>();
+		Properties configFile = new Properties();
+		try {
+			configFile.load(new FileInputStream(propsFile));
+		} catch (IOException e) {
+			System.out.print("Nie można otworzyć pliku properties");
+		}
+		
+		CDR.FILE = configFile.getProperty("FILE");
+		CDR.OUT_DIR = configFile.getProperty("OUT_DIR");
+		
+		
 	}
 	
 	/**
